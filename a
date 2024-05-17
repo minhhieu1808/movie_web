@@ -1,0 +1,102 @@
+services:
+  elasticsearch1:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    container_name: elasticsearch1
+    hostname: elasticsearch1
+    ports: 
+      - "9200:9200"
+    environment:
+      - "node.name=elasticsearch1"
+      - "bootstrap.memory_lock=true"
+      - "cluster.name=es-cluster"
+      - "discovery.seed_hosts=elasticsearch2"
+      - "cluster.initial_master_nodes=elasticsearch1,elasticsearch2"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "xpack.security.enabled=true"
+      - "xpack.security.http.ssl.enabled=false"
+      - "xpack.security.transport.ssl.enabled=true"
+      - xpack.security.transport.ssl.verification_mode:certificate
+      - xpack.security.transport.ssl.keystore.path:certs/transport.p12
+      - xpack.security.transport.ssl.truststore.path:certs/transport.p12
+      - "ELASTIC_USERNAME=elastic"
+      - "ELASTIC_PASSWORD=elastic@2024"
+      - "ELASTIC_USERNAME=kibana"
+      - "ELASTIC_PASSWORD=kibana@2024"
+    volumes:
+      - $PWD/x-pack-core-8.7.0.jar:/usr/share/elasticsearch/modules/x-pack-core/x-pack-core-8.7.0.jar
+      - $PWD/certs:/usr/share/elasticsearch/config/certs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    networks:
+       hadoop: 
+        ipv4_address: 172.25.0.4
+
+  # elasticsearch2:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+  #   container_name: elasticsearch2
+  #   hostname: elasticsearch2
+  #   ports: 
+  #     - "9201:9200"
+  #   environment:
+  #     - "node.name=elasticsearch2"
+  #     - "bootstrap.memory_lock=true"
+  #     - "cluster.name=es-cluster"
+  #     - "discovery.seed_hosts=elasticsearch1"
+  #     - "cluster.initial_master_nodes=elasticsearch1,elasticsearch2"
+  #     - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+  #     - "xpack.security.enabled=true"
+  #     - "xpack.security.http.ssl.enabled=false"
+  #     - "xpack.security.transport.ssl.enabled=true"
+  #     - "ELASTIC_USERNAME=elastic"
+  #     - "ELASTIC_PASSWORD=elastic@2024"
+  #   volumes:
+  #     - $PWD/x-pack-core-8.7.0.jar:/usr/share/elasticsearch/modules/x-pack-core/x-pack-core-8.7.0.jar
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9200"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 30
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   networks:
+  #      hadoop: 
+  #       ipv4_address: 172.25.0.5
+
+#   kibana:
+#     image: docker.elastic.co/kibana/kibana:8.7.0
+#     container_name: kibana
+#     environment:
+#       - 'ELASTICSEARCH_HOSTS=["http://elasticsearch1:9200","http://elasticsearch2:9200"]'
+#       - "SERVER_NAME=localhost"
+#       - "SERVER_PUBLICBASEURL=http://localhost:5601"
+#       - ELASTICSEARCH_USERNAME=kibana
+#       - ELASTICSEARCH_PASSWORD=kibana@2024
+#     ports:
+#       - "5601:5601"
+#     depends_on:
+#       - elasticsearch1
+# #      - elasticsearch2
+#     networks:
+#        hadoop: 
+#         ipv4_address: 172.25.0.3
+networks:
+    hadoop:
+        name: custom_network
+        driver: bridge
+        ipam:
+          driver: default
+          config:
+            - subnet: 172.25.0.0/16
