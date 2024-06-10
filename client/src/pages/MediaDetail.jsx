@@ -52,17 +52,16 @@ const MediaDetail = () => {
   const dispatch = useDispatch();
 
   const videoRef = useRef(null);
-
   useEffect(() => {
     window.scrollTo(0, 0);
     const getMedia = async () => {
       dispatch(setGlobalLoading(true));
       const { response, err } = await mediaApi.getDetail({ mediaType, mediaId });
-      console.log(response);
+      // console.log(response);
       dispatch(setGlobalLoading(false));
 
       if (response) {
-        setMedia(response);
+        setMedia({...response,genre_names:response.genres.map(genre => genre.name)});
         setStarRating(response.isRated.starRating);
         setIsFavorite(response.isFavorite);
         setGenres(response.genres.splice(0, 2));
@@ -88,6 +87,7 @@ const MediaDetail = () => {
           mediaType: mediaType,
           mediaPoster: media.poster_path,
           mediaRate: media.vote_average,
+          mediaGenres: media.genre_names,
           user:null
           }
         }
@@ -108,6 +108,7 @@ const MediaDetail = () => {
         mediaType: mediaType,
         mediaPoster: media.poster_path,
         mediaRate: media.vote_average,
+        mediaGenres: media.genre_names,
         userRate:points,
         user:user.username
           }

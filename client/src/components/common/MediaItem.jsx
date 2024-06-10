@@ -18,7 +18,7 @@ const MediaItem = ({ media, mediaType, isSearched}) => {
   const [releaseDate, setReleaseDate] = useState(null);
   const [rate, setRate] = useState(null);
 
-  
+
   function tracking(){
     if(isSearched == true){
       var username

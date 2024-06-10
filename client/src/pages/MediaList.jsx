@@ -12,6 +12,7 @@ import { setAppState } from "../redux/features/appStateSlice";
 import { setGlobalLoading } from "../redux/features/globalLoadingSlice";
 import { toast } from "react-toastify";
 import usePrevious from "../hooks/usePrevious";
+import { genreInfo } from "../configs/genre. config";
 
 const MediaList = () => {
   const { mediaType } = useParams();
@@ -48,8 +49,13 @@ const MediaList = () => {
 
       if (err) toast.error(err.message);
       if (response) {
-        if (currPage !== 1) setMedias(m => [...m, ...response.results]);
-        else setMedias([...response.results]);
+        const formatResult = response.results.map((res) => ({...res, genre_names:res.genre_ids.map(id => {
+          const foundGenre = genreInfo.find(genre => genre.id === id)
+          if (foundGenre === undefined) return undefined;
+          return foundGenre.name
+        }).filter(genre => genre !== undefined )}))
+        if (currPage !== 1) setMedias(m => [...m, ...formatResult]);
+        else setMedias([...formatResult]);
       }
     };
 
