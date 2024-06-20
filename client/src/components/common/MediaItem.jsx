@@ -10,11 +10,13 @@ import CircularRate from "./CircularRate";
 import { useSelector } from "react-redux";
 import favoriteUtils from "../../utils/favorite.utils";
 import { newTracker, trackPageView,trackSelfDescribingEvent, enableActivityTracking } from '@snowplow/browser-tracker';
-const MediaItem = ({ media, mediaType, isSearched}) => {
- 
+import { genreInfo } from "../../configs/genre. config";
+const MediaItem = ({ media, mediaType, isSearched}) => { 
+
   const { user, listFavorites } = useSelector((state) => state.user);
   const [title, setTitle] = useState("");
-  const [posterPath, setPosterPath] = useState("");
+  const [posterPath, setPosterPath] = useState([]);
+  const [genres, setGenres] = useState(null);
   const [releaseDate, setReleaseDate] = useState(null);
   const [rate, setRate] = useState(null);
 
@@ -24,11 +26,11 @@ const MediaItem = ({ media, mediaType, isSearched}) => {
       var username
       if(user == null) username = null;
       else username = user.username
-      newTracker('snowplow', 'http://192.168.233.209:8080', {
+      newTracker('snowplow', 'http://192.168.233.247:8080', {
        appId: 'my-app-id',
        plugins: [],
       });
-      
+      // console.log(media)
       trackSelfDescribingEvent({
       event: {
       schema: 'iglu:com.example/search_event/jsonschema/1-0-0',
@@ -39,6 +41,7 @@ const MediaItem = ({ media, mediaType, isSearched}) => {
             mediaType: mediaType,
             mediaPoster: media.poster_path,
             mediaRate: media.vote_average,
+            mediaGenres: genres,
             user: username
           }
         }
@@ -48,7 +51,7 @@ const MediaItem = ({ media, mediaType, isSearched}) => {
       var username
       if(user == null) username = null;
       else username = user.username
-      newTracker('snowplow', 'http://192.168.233.209:8080', {
+      newTracker('snowplow', 'http://192.168.233.247:8080', {
        appId: 'my-app-id',
        plugins: [],
       });
@@ -64,6 +67,7 @@ const MediaItem = ({ media, mediaType, isSearched}) => {
             mediaType: mediaType,
             mediaPoster: media.poster_path,
             mediaRate: media.vote_average,
+            mediaGenres: genres,
             user: username
           }
         }
@@ -75,6 +79,12 @@ const MediaItem = ({ media, mediaType, isSearched}) => {
     setTitle(media.title || media.name || media.mediaTitle);
 
     setPosterPath(tmdbConfigs.posterPath(media.poster_path || media.backdrop_path || media.mediaPoster || media.profile_path));
+
+    setGenres(media.genre_ids.map(id => {
+      const foundGenre = genreInfo.find(genre => genre.id === id)
+      if (foundGenre === undefined) return undefined;
+      return foundGenre.name
+    }).filter(genre => genre !== undefined ));
 
     if (mediaType === tmdbConfigs.mediaType.movie) {
       setReleaseDate(media.release_date && media.release_date.split("-")[0]);

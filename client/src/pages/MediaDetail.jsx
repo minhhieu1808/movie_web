@@ -57,7 +57,6 @@ const MediaDetail = () => {
     const getMedia = async () => {
       dispatch(setGlobalLoading(true));
       const { response, err } = await mediaApi.getDetail({ mediaType, mediaId });
-      // console.log(response);
       dispatch(setGlobalLoading(false));
 
       if (response) {
@@ -73,10 +72,11 @@ const MediaDetail = () => {
   }, [/*mediaType, mediaId, dispatch*/]);
 
   function saveFavoriteLogToKafka(){
-    newTracker('snowplow', 'http://192.168.233.209:8080', {
+    newTracker('snowplow', 'http://192.168.233.247:8080', {
        appId: 'my-app-id',
        plugins: [],
     });
+    console.log(media.genre_names)
     trackSelfDescribingEvent({
       event: {
       schema: 'iglu:com.example/favorite_event/jsonschema/1-0-0',
@@ -95,7 +95,7 @@ const MediaDetail = () => {
   }
 
   const saveRatingLogToKafka = async(points) =>{
-    newTracker('snowplow', 'http://192.168.233.209:8080', {
+    newTracker('snowplow', 'http://192.168.233.247:8080', {
        appId: 'my-app-id',
        plugins: [],
     });
